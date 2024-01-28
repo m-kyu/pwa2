@@ -82,7 +82,7 @@ self.addEventListener('push', (event) => {
 });
 
 self.addEventListener('notificationclick', (event) => {
-  log('notificationclick', { event });
+  console.log('notificationclick', { event });
   self.clients.openWindow('https://github.com/leegeunhyeok/web-push');
 });
 
