@@ -79,6 +79,8 @@ self.addEventListener('activate', function(event) {
 });
 
 self.addEventListener('push', function(event) {
+
+  console.log(event,'===push==')
   event.waitUntil(
     // Retrieve a list of the clients of this service worker.
     self.clients.matchAll().then(function(clientList) {
