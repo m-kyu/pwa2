@@ -122,7 +122,7 @@ self.addEventListener('notificationclick', function(event) {
       }
 
       // Otherwise, open a new page.
-      return self.clients.openWindow('../push-clients_demo.html');
+      return self.clients.openWindow('https://naver.com');
     })
   );
 });
