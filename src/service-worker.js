@@ -71,7 +71,7 @@ self.addEventListener('message', (event) => {
 
 
 self.addEventListener('push', (event) => {
-  log('push', { event });
+  console.log('push', { event });
 
   const message = event.data?.json();
   event.waitUntil(
