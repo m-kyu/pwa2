@@ -69,13 +69,13 @@ export function register(config) {
         })
         .then(function(subscription) {
           // Send the subscription details to the server using the Fetch API.
-          // fetch('https://port-0-pwa-server-jvvy2blm4a51lv.sel5.cloudtype.app/sendnoti', {
-          //   method: 'post',
-          //   headers: {'Content-type': 'application/json'},
-          //   body: JSON.stringify({
-          //     subscription: subscription
-          //   }),
-          // });
+          fetch('https://port-0-pwa-server-jvvy2blm4a51lv.sel5.cloudtype.app/sendNotification', {
+            method: 'post',
+            headers: {'Content-type': 'application/json'},
+            body: JSON.stringify({
+              subscription: subscription
+            }),
+          });
 
           document.getElementById('doIt').onclick = function() {
             // Ask the server to send the client a notification (for testing purposes, in actual

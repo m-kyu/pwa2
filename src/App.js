@@ -4,7 +4,8 @@ import axios from 'axios'
 
 function App() {
 
-
+  // https://github.com/mdn/serviceworker-cookbook/blob/master/push-clients/index.js
+  // https://blog.hoseung.me/2021-11-28-web-push-notification
     function makeNoti() {
       if (Notification.permission === "denied" || Notification.permission === "default") {
         alert("알림이 차단된 상태입니다. 알림 권한을 허용해주세요.");
