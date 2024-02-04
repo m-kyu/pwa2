@@ -49,19 +49,7 @@ navigator.serviceWorker.ready
             });
     }).then(function (subscription) {
 
-       
-        // Send the subscription details to the server using the Fetch API.
-        fetch('http://localhost:3001/sendNotification', {
-            method: 'post',
-            headers: {'Content-type': 'application/json'},
-            body: JSON.stringify({subscription: subscription}),
-        })
-            .then(res => res.text())
-            .then(res => {
-                console.log(res.data)
-            })
-
-            
+                   
         document.getElementById('doIt').onclick = function () {
             
             // Ask the server to send the client a notification (for testing purposes, in actual

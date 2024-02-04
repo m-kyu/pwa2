@@ -63,66 +63,57 @@ registerRoute(
 
 // This allows the web app to trigger skipWaiting via
 // registration.waiting.postMessage({type: 'SKIP_WAITING'})
-self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
-});
+// self.addEventListener('message', (event) => {
+//   if (event.data && event.data.type === 'SKIP_WAITING') {
+//     self.skipWaiting();
+//   }
+// });
 
-
-self.addEventListener('install', function(event) {
+self.addEventListener('install',(event)=>{
   event.waitUntil(self.skipWaiting());
-});
+})
 
-self.addEventListener('activate', function(event) {
+self.addEventListener('activate',(event)=>{
   event.waitUntil(self.clients.claim());
-});
+})
 
-self.addEventListener('push', function(event) {
 
-  console.log(event,'===push==')
+
+self.addEventListener('push',(event)=>{
+  const data = JSON.parse(event.data.text());
+   console.log('메세지가?....', event.data.text());
+
+   const option = {
+    body: data.msg,
+    icon:'1.jpg',    /* 제목옆에 작은 원형이미지 */
+    image:'2.jpg',  /* 내용썸네일 */
+    badge:'3.jpg',
+    vibrate:[200,100,300],
+    actions:[
+        {action:'open', title:'자세히보기'},
+        {action:'close', title:'닫기'}
+    ],
+    tag:'abc'
+   }
+   
+   event.waitUntil(self.registration.showNotification('title', option));
+})
+
+
+
+self.addEventListener('notificationclick',(event)=>{
+  // console.log(event)
+  // console.log(clients)
   event.waitUntil(
-    // Retrieve a list of the clients of this service worker.
-    self.clients.matchAll().then(function(clientList) {
-      // Check if there's at least one focused client.
-      var focused = clientList.some(function(client) {
-        return client.focused;
-      });
-
-      var notificationMessage;
-      if (focused) {
-        notificationMessage = 'You\'re still here, thanks!';
-      } else if (clientList.length > 0) {
-        notificationMessage = 'You haven\'t closed the page, ' +
-                              'click here to focus it!';
-      } else {
-        notificationMessage = 'You have closed the page, ' +
-                              'click here to re-open it!';
-      }
-
-      // Show a notification with title 'ServiceWorker Cookbook' and body depending
-      // on the state of the clients of the service worker (three different bodies:
-      // 1, the page is focused; 2, the page is still open but unfocused; 3, the page
-      // is closed).
-      return self.registration.showNotification('ServiceWorker Cookbook', {
-        body: notificationMessage,
-      });
-    })
-  );
-});
-
-// Register event listener for the 'notificationclick' event.
-self.addEventListener('notificationclick', function(event) {
-  event.waitUntil(
-    // Retrieve a list of the clients of this service worker.
-    self.clients.matchAll().then(function(clientList) {
-      // If there is at least one client, focus it.
-      if (clientList.length > 0) {
-        return clientList[0].focus();
-      }
-
-      // Otherwise, open a new page.
-      return self.clients.openWindow('https://naver.com');
-    })
+      self.clients.matchAll().then(function(clientList) {
+          console.log(clientList)
+          if(event.action == 'open'){
+              //자세히보기 
+              return self.clients.openWindow('https://naver.com');
+          }else{
+              //닫기
+              return event.notification.close();
+          }
+      })
   );
 });

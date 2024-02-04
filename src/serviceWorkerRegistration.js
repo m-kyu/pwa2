@@ -1,12 +1,14 @@
+// This optional code is used to register a service worker.
+// register() is not called by default.
 
-const isLocalhost = Boolean(
-  window.location.hostname === 'localhost' ||
-    // [::1] is the IPv6 localhost address.
-    window.location.hostname === '[::1]' ||
-    // 127.0.0.0/8 are considered localhost for IPv4.
-    window.location.hostname.match(/^127(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/)
-);
+// This lets the app load faster on subsequent visits in production, and gives
+// it offline capabilities. However, it also means that developers (and users)
+// will only see deployed updates on subsequent visits to a page, after all the
+// existing tabs open on the page have been closed, since previously cached
+// resources are updated in the background.
 
+// To learn more about the benefits of this model and instructions on how to
+// opt-in, read https://cra.link/PWA
 function urlBase64ToUint8Array(base64String) {
   var padding = '='.repeat((4 - base64String.length % 4) % 4);
   var base64 = (base64String + padding)
@@ -22,6 +24,15 @@ function urlBase64ToUint8Array(base64String) {
   return outputArray;
 }
 
+
+const isLocalhost = Boolean(
+  window.location.hostname === 'localhost' ||
+    // [::1] is the IPv6 localhost address.
+    window.location.hostname === '[::1]' ||
+    // 127.0.0.0/8 are considered localhost for IPv4.
+    window.location.hostname.match(/^127(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/)
+);
+
 export function register(config) {
   if (process.env.NODE_ENV === 'production' && 'serviceWorker' in navigator) {
     // The URL constructor is available in all browsers that support SW.
@@ -34,8 +45,44 @@ export function register(config) {
     }
 
     window.addEventListener('load', () => {
-      // const swUrl = `${process.env.PUBLIC_URL}/service-worker.js`;
       const swUrl = `${process.env.PUBLIC_URL}/service-worker.js`;
+      
+      const domain = 'https://port-0-express-jvvy2blm4a51lv.sel5.cloudtype.app'
+      function urlBase64ToUint8Array(base64String) {
+        var padding = '='.repeat((4 - base64String.length % 4) % 4);
+        var base64 = (base64String + padding)
+          .replace(/\-/g, '+')
+          .replace(/_/g, '/');
+      
+        var rawData = window.atob(base64);
+        var outputArray = new Uint8Array(rawData.length);
+      
+        for (var i = 0; i < rawData.length; ++i) {
+          outputArray[i] = rawData.charCodeAt(i);
+        }
+        return outputArray;
+      }
+      
+      // return;
+      function getSubscription(registration){
+        //서버 퍼블릭키를 활용하여 사용자 정보 생성
+        return registration.pushManager.getSubscription()
+          .then(async (subscription)=>{
+
+            if(subscription){
+               return subscription;
+            }
+
+            let publicKey = await fetch(domain+'/push/publicKey');
+            let publicText = await publicKey.text();
+            let converKey = urlBase64ToUint8Array(publicText);
+
+            return registration.pushManager.subscribe({
+              userVisibleOnly: true,
+              applicationServerKey: converKey
+            });
+          })
+      }
 
       if (!isLocalhost) {
         // This is running on localhost. Let's check if a service worker still exists or not.
@@ -44,60 +91,28 @@ export function register(config) {
         // Add some additional logging to localhost, pointing developers to the
         // service worker/PWA documentation.
         navigator.serviceWorker.ready
-        .then(function(registration) {
-          // Use the PushManager to get the user's subscription to the push service.
-          return registration.pushManager.getSubscription()
-          .then(async function(subscription) {
-            // If a subscription was found, return it.
-            if (subscription) {
-              return subscription;
-            }
-        
-            // Get the server's public key
-            const response = await fetch('https://port-0-pwa-server-jvvy2blm4a51lv.sel5.cloudtype.app/noti');
-            const vapidPublicKey = await response.text();
-            // Chrome doesn't accept the base64-encoded (string) vapidPublicKey yet
-            // urlBase64ToUint8Array() is defined in /tools.js
-            const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
-        
-            // Otherwise, subscribe the user (userVisibleOnly allows to specify that we don't plan to
-            // send notifications that don't have a visible effect for the user).
-            return registration.pushManager.subscribe({
-              userVisibleOnly: true,
-              applicationServerKey: convertedVapidKey
-            });
-          });
+        .then((registration)=>{
+          return getSubscription(registration);
         })
-        .then(function(subscription) {
-          // Send the subscription details to the server using the Fetch API.
-          console.log(subscription)
-          fetch('https://port-0-pwa-server-jvvy2blm4a51lv.sel5.cloudtype.app/sendNotification', {
-            method: 'post',
-            headers: {'Content-type': 'application/json'},
-            body: JSON.stringify({
-              subscription: subscription
-            }),
-          });
+        .then((subscribe)=>{
+          
+          document.getElementById('msg').onclick = async ()=>{
+              console.log('구독시작!');
 
-          document.getElementById('doIt').onclick = function() {
-            
-            console.log(subscription)
-            
-            fetch('https://port-0-pwa-server-jvvy2blm4a51lv.sel5.cloudtype.app/sendNotification', {
-              method: 'post',
-              headers: {
-                'Content-type': 'application/json'
-              },
-              body: JSON.stringify({
-                subscription: subscription
-              }),
-            })
-            .then(res=>res.text())
-            .then(res=>{
-              console.log(res);
-            })
-          };
-        });
+              await fetch(domain + '/push/sendNoti',{
+                method:'post',
+                headers: {
+                  'Content-type': 'application/json'
+                },
+                body:JSON.stringify({subscribe})
+              })
+              .then(res=>res.text())
+              .then(res=>{
+                console.log(res)
+              });
+          }
+        })
+
       } else {
         // Is not localhost. Just register service worker
         registerValidSW(swUrl, config);
